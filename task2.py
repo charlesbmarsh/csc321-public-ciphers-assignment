@@ -1,13 +1,11 @@
 """
-" Assignment 2, Task 1
+" Assignment 2, Task 2
 "
 " Charlie Marsh, Gavin Ruane, and Michael Wilson
 " CSC 321-03
 "
 """
 
-import os
-from io import BufferedIOBase
 from Crypto.Hash import SHA256
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
@@ -16,6 +14,7 @@ from sys import argv
 import typing
 from random import randint
 import math
+from diffiehellman import *
 
 """
 " main()
@@ -39,40 +38,24 @@ def main():
 	iv: bytes = get_random_bytes(AES.block_size)
 
 	# Define q and alpha
-	q_str: bytes = (
-		b"B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C69A6A9DCA52D23B61"
-		b"6073E28675A23D189838EF1E2EE652C013ECB4AEA906112324975C3CD49B83BF"
-		b"ACCBDD7D90C4BD7098488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0"
-		b"A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371"
-	)
-	q: int = int(q_str, 16)
-	print(q)
-
-
-	alpha_str: bytes = (
-		b"B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C6"
-		b"9A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C0"
-		b"13ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD70"
-		b"98488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0"
-		b"A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708"
-		b"DF1FB2BC2E4A4371"
-	)
-	alpha: int = int(alpha_str, 16)
-
-#	q = 37
-#	alpha = 5
-
+	q = 37
+	alpha = 5
 
 	# Initialize two diffie_hellman instances and create their public and
 	# private "items" (X and Y)
 	alice = diffie_hellman(q, alpha)
-	alice.create_items()
 	bob = diffie_hellman(q, alpha)
+	mallory = dh_attacker(q, alpha)
+
+	alice.create_items()
 	bob.create_items()
 
+	mallory.one_public = alice.public_item
+	mallory.two_public = bob.public_item
+
 	# With public and private "items" created, create the unhashed keys
-	alice.create_unhashed_key(bob.public_item)
-	bob.create_unhashed_key(alice.public_item)
+	alice.create_unhashed_key(mallory.q)
+	bob.create_unhashed_key(mallory.q)
 
 	# Create the (hashed) keys
 	alice.create_key()
@@ -94,81 +77,6 @@ def main():
 
 	return
 
-
-"""
-" class diffie_hellman
-"
-" main() function for task1 
-"
-" @return  None
-"""
-class diffie_hellman:
-	def __init__(self, alpha: int, q: int):
-		self.alpha: int = alpha
-		self.q: int = q
-
-		self.public_item: int = 0
-		self.private_item: int = 0
-		self.unhashed_key: int = 0
-		self.key: bytes = b""
-
-	def create_items(self) -> int:
-		# Create the private "item" using a random number
-		self.private_item = randint(1, self.q - 1)
-
-		# Create the public "item"
-		self.public_item = (pow(self.alpha, (self.private_item / 2)) * pow(self.alpha, (self.private_item / 2))) % self.q
-		
-		return self.public_item
-
-	def create_unhashed_key(self, ext_public_item: int) -> int:
-		self.unhashed_key = pow(ext_public_item, self.private_item) # % self.q
-
-		return self.unhashed_key
-
-	def create_key(self):
-		sha256_hash = SHA256.new()
-
-		# Compute the length (in bytes) of the unhashed key
-		length = math.ceil(self.unhashed_key.bit_length() / 8)
-
-		# Hash the key and truncate it to 16 bytes
-		sha256_hash.update(self.unhashed_key.to_bytes(length, "big"))
-		self.key = sha256_hash.digest()[:16]	# [:16] -> truncation
-
-		return self.key
-
-
-def encrypt_cbc(plaintext: bytes, iv: bytes, key: bytes) -> bytes:
-	cipher_cbc = AES.new(key, AES.MODE_ECB)
-	i = 0
-	blocks = []
-	encrypted_blocks = []
-
-	for blk_start in range(0, len(plaintext), AES.block_size):
-		new_block = bytearray(b"")
-		if blk_start == 0:
-			for byte_b, iv_b in zip(plaintext[blk_start:blk_start+128], iv):
-				new_block.append(byte_b ^ iv_b)
-			blocks.append(new_block)
-		else:
-			for byte_b, cipher_b in zip(plaintext[blk_start:blk_start+128], encrypted_blocks[i - 1]):
-				new_block.append(byte_b ^ cipher_b)
-			blocks.append(new_block)
-
-		encrypted_blocks.append(cipher_cbc.encrypt(blocks[i]))
-		i += 1
-
-	ciphertext = b"".join(encrypted_blocks)
-
-	return ciphertext
-
-def decrypt_cbc(ciphertext: bytes, iv: bytes, key: bytes) -> str:
-	cipher = AES.new(key, AES.MODE_CBC, iv)
-	plaintext_padded = cipher.decrypt(ciphertext)
-	plaintext = unpad(plaintext_padded, AES.block_size).decode("latin-1")
-
-	return plaintext
 
 
 if __name__ == "__main__":

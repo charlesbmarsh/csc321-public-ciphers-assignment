@@ -92,6 +92,23 @@ class diffie_hellman:
 		return self.key
 
 
+class dh_attacker(diffie_hellman):
+	def __init__(self, alpha: int, q: int) -> None:
+		self.alpha: int = alpha
+		self.q: int = q
+
+		self.public_item: int = 0
+		self.private_item: int = 0
+		self.unhashed_key: int = 0
+		self.key: bytes = b""
+
+		self.one_public: int = 0
+		self.two_public: int = 0
+
+	def determine_s():
+		return
+
+
 """
 " encrypt_cbc()
 " 
