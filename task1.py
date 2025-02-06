@@ -46,7 +46,6 @@ def main():
 		b"A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371"
 	)
 	q: int = int(q_str, 16)
-	print(q)
 
 
 	alpha_str: bytes = (
@@ -116,13 +115,14 @@ class diffie_hellman:
 		# Create the private "item" using a random number
 		self.private_item = randint(1, self.q - 1)
 
-		# Create the public "item"
-		self.public_item = (pow(self.alpha, (self.private_item / 2)) * pow(self.alpha, (self.private_item / 2))) % self.q
+		# Create the public "item" using the pow() function.
+		# pow(base, exp, mod)
+		self.public_item = pow(self.alpha, self.private_item, self.q)
 		
 		return self.public_item
 
 	def create_unhashed_key(self, ext_public_item: int) -> int:
-		self.unhashed_key = pow(ext_public_item, self.private_item) # % self.q
+		self.unhashed_key = pow(ext_public_item, self.private_item, self.q)
 
 		return self.unhashed_key
 
