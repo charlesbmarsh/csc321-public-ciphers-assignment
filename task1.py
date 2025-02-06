@@ -61,7 +61,6 @@ def main():
 #	q = 37
 #	alpha = 5
 
-
 	# Initialize two diffie_hellman instances and create their public and
 	# private "items" (X and Y)
 	alice = diffie_hellman(q, alpha)
@@ -97,12 +96,21 @@ def main():
 """
 " class diffie_hellman
 "
-" main() function for task1 
+" Class definition for one party in a Diffie-Hellman key exchange
+" scenario. Acts like a "person" in that each instance represents a
+" person's secrets and public items.
 "
-" @return  None
+" @param  alpha		Public, randomly-generated number
+" @param  q		Public, large prime number
+" @param  public_item	Public, number shared between parties
+" @param  private_item  Sometimes referred to as "X_k" (where k is a
+"			letter unique to a person); random number
+" @param  unhashed_key	Known as "s"; symmetric amongst parties but not
+"			shared directly
+" @param  key		Hashed version of unhashed_key/"s"
 """
 class diffie_hellman:
-	def __init__(self, alpha: int, q: int):
+	def __init__(self, alpha: int, q: int) -> None:
 		self.alpha: int = alpha
 		self.q: int = q
 
@@ -114,7 +122,8 @@ class diffie_hellman:
 	"""
 	" create_items()
 	"
-	" main() function for task1 
+	" Creates and stores a random private item (sometimes known as
+	" X_A) and a public item using alpha, q, and the public_item.
 	"
 	" @param   self
 	" @return  self.public_item
@@ -130,12 +139,14 @@ class diffie_hellman:
 		return self.public_item
 
 	"""
-	" create_items()
+	" create_unhashed_key()
 	"
-	" main() function for task1 
+	" Creates an unhashed key using the private item, another party's
+	" public item, and q.
 	"
 	" @param   self
-	" @return  self.public_item
+	" @param   ext_public_item
+	" @return  self.unhashed_key
 	"""
 	def create_unhashed_key(self, ext_public_item: int) -> int:
 		# Create the unhashed key
@@ -144,12 +155,13 @@ class diffie_hellman:
 		return self.unhashed_key
 
 	"""
-	" create_items()
+	" create_key()
 	"
-	" main() function for task1 
+	" Hashes the unhashed key created with create_unhashed_key().
+	" Truncates the hashed key to 16 bytes.
 	"
 	" @param   self
-	" @return  self.public_item
+	" @return  self.key
 	"""
 	def create_key(self):
 		sha256_hash = SHA256.new()
@@ -165,11 +177,16 @@ class diffie_hellman:
 
 
 """
-" class diffie_hellman
+" encrypt_cbc()
+" 
+" Encrypts a string of any length using AES with Cipher Block Chaining
+" (CBC) mode of operation. Requires input strings to be padded to
+" conform to AES.block_size.
 "
-" main() function for task1 
-"
-" @return  None
+" @param   plaintext_b  plaintext input that is padded and a byte string
+" @param   iv           initial vector to use when encrypting
+" @param   key          key to use when encrypting
+" @return  ciphertext   encrypted byte string
 """
 def encrypt_cbc(plaintext: bytes, iv: bytes, key: bytes) -> bytes:
 	cipher_cbc = AES.new(key, AES.MODE_ECB)
@@ -195,17 +212,24 @@ def encrypt_cbc(plaintext: bytes, iv: bytes, key: bytes) -> bytes:
 
 	return ciphertext
 
+
 """
-" class diffie_hellman
+" decrypt_cbc()
+" 
+" Decrypts a string of any length using AES with Cipher Block Chaining
+" (CBC) mode of operation. Handles unpadding of plaintext if desired.
 "
-" main() function for task1 
-"
-" @return  None
+" @param   ciphertext  plaintext input that is padded and a byte string
+" @param   iv          initial vector to use when decrypting
+" @param   key         key to use when decrypting
+" @param   unpad       (Optional) whether or not function should unpad
+" @return  plaintext   decrypted plaintext
 """
-def decrypt_cbc(ciphertext: bytes, iv: bytes, key: bytes) -> str:
+def decrypt_cbc(ciphertext: bytes, iv: bytes, key: bytes, unpad: bool = True) -> str:
 	cipher = AES.new(key, AES.MODE_CBC, iv)
 	plaintext_padded = cipher.decrypt(ciphertext)
-	plaintext = unpad(plaintext_padded, AES.block_size).decode("latin-1")
+	if unpad:
+		plaintext = unpad(plaintext_padded, AES.block_size).decode("latin-1")
 
 	return plaintext
 
