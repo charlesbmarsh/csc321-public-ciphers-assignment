@@ -53,6 +53,10 @@ def main():
 	mallory.one_public = alice.public_item
 	mallory.two_public = bob.public_item
 
+	# Mallory determining someone's private item and then their unhashed key
+	mallory.determine_private_item(1)
+	mallory.create_unhashed_key()
+
 	# With public and private "items" created, create the unhashed keys
 	alice.create_unhashed_key(mallory.q)
 	bob.create_unhashed_key(mallory.q)
@@ -60,12 +64,13 @@ def main():
 	# Create the (hashed) keys
 	alice.create_key()
 	bob.create_key()
+	mallory.create_key()
 
 	# Encrypt the ciphertext using Alice's key
 	ciphertext: bytes = encrypt_cbc(padded_plaintext, iv, alice.key)
 
-	# Decrypt the ciphertext using Bob's key
-	returned_plaintext: str = decrypt_cbc(ciphertext, iv, bob.key)
+	# Decrypt the ciphertext using Mallory's key
+	returned_plaintext: str = decrypt_cbc(ciphertext, iv, mallory.key)
 
 	# Display success of program
 	print(f"Original plaintext: {plaintext}\n")

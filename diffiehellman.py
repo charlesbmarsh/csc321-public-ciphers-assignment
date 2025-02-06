@@ -104,9 +104,32 @@ class dh_attacker(diffie_hellman):
 
 		self.one_public: int = 0
 		self.two_public: int = 0
+		self.someones_private: int = 0
+		self.someone_identity: int = 0	# 1 for one, 2 for two
 
-	def determine_s():
-		return
+	def determine_private_item(self, whose_public: int):
+		public: int = 0
+		self.someone_identity = whose_public
+		if self.someone_identity == 1:
+			public = self.one_public
+		else:
+			public = self.two_public
+
+		self.someones_private = -1 * math.log(public % self.q, self.alpha)
+
+		return self.someones_private
+
+	# Override
+	def create_unhashed_key(self):
+		public: int = 0
+		if self.someone_identity == 1:
+			public = self.two_public
+		else:
+			public = self.one_public
+
+		self.unhashed_key = pow(public, self.someones_private, self.q)
+
+		return self.unhashed_key
 
 
 """
