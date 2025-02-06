@@ -111,6 +111,14 @@ class diffie_hellman:
 		self.unhashed_key: int = 0
 		self.key: bytes = b""
 
+	"""
+	" create_items()
+	"
+	" main() function for task1 
+	"
+	" @param   self
+	" @return  self.public_item
+	"""
 	def create_items(self) -> int:
 		# Create the private "item" using a random number
 		self.private_item = randint(1, self.q - 1)
@@ -121,11 +129,28 @@ class diffie_hellman:
 		
 		return self.public_item
 
+	"""
+	" create_items()
+	"
+	" main() function for task1 
+	"
+	" @param   self
+	" @return  self.public_item
+	"""
 	def create_unhashed_key(self, ext_public_item: int) -> int:
+		# Create the unhashed key
 		self.unhashed_key = pow(ext_public_item, self.private_item, self.q)
 
 		return self.unhashed_key
 
+	"""
+	" create_items()
+	"
+	" main() function for task1 
+	"
+	" @param   self
+	" @return  self.public_item
+	"""
 	def create_key(self):
 		sha256_hash = SHA256.new()
 
@@ -139,6 +164,13 @@ class diffie_hellman:
 		return self.key
 
 
+"""
+" class diffie_hellman
+"
+" main() function for task1 
+"
+" @return  None
+"""
 def encrypt_cbc(plaintext: bytes, iv: bytes, key: bytes) -> bytes:
 	cipher_cbc = AES.new(key, AES.MODE_ECB)
 	i = 0
@@ -163,6 +195,13 @@ def encrypt_cbc(plaintext: bytes, iv: bytes, key: bytes) -> bytes:
 
 	return ciphertext
 
+"""
+" class diffie_hellman
+"
+" main() function for task1 
+"
+" @return  None
+"""
 def decrypt_cbc(ciphertext: bytes, iv: bytes, key: bytes) -> str:
 	cipher = AES.new(key, AES.MODE_CBC, iv)
 	plaintext_padded = cipher.decrypt(ciphertext)
