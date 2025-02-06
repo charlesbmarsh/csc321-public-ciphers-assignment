@@ -1,23 +1,29 @@
 from Crypto.Util.number import getPrime
-from Crypto.Random.random import randint
-from math import gcd
+# from Crypto.Random.random import randint
+# from math import gcd
 
 def main():
     primeBits = 1024 # need to take use input, support up to 2048 bits
-    
+
     keys = getKeys(primeBits)
     e = keys[0][0]
     n = keys[0][1]
     d = keys[1][0]
 
     message = "Helo, world!"
-    print("message:", message)
+    input = int(message.encode('latin-1').hex(), 16)
+    print("message:", input, "(type", type(input), ")")
+    print("message < n?", input < n)
+    if(input >= n):
+        print("message too long!")
+        return
     
-    ciphertext = encrypt(message, e, n)
+    ciphertext = encrypt(input, e, n)
     print("ciphertext:", ciphertext)
 
     plaintext = decrypt(ciphertext, d, n)
-    print("plaintext:", plaintext)
+    # print("plaintext:", plaintext)
+    print("successfully decrypted?", plaintext == input)
 
 
 def getKeys(primeBits):
