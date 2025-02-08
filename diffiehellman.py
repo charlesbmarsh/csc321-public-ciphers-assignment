@@ -26,7 +26,7 @@ import math
 " @param  key		Hashed version of unhashed_key/"s"
 """
 class diffie_hellman:
-	def __init__(self, alpha: int, q: int) -> None:
+	def __init__(self, q: int, alpha: int) -> None:
 		self.alpha: int = alpha
 		self.q: int = q
 
@@ -45,13 +45,18 @@ class diffie_hellman:
 	" @return  self.public_item
 	"""
 	def create_items(self) -> int:
-		# Create the private "item" using a random number
+		self.create_public_item()
+		self.create_private_item()
+
+
+	def create_public_item(self) -> int:
+		self.public_item = pow(self.alpha, self.private_item, self.q)
+
+		return self.public_item
+
+	def create_private_item(self) -> int:
 		self.private_item = randint(1, self.q - 1)
 
-		# Create the public "item" using the pow() function.
-		# pow(base, exp, mod)
-		self.public_item = pow(self.alpha, self.private_item, self.q)
-		
 		return self.public_item
 
 	"""
@@ -90,46 +95,6 @@ class diffie_hellman:
 		self.key = sha256_hash.digest()[:16]	# [:16] -> truncation
 
 		return self.key
-
-
-class dh_attacker(diffie_hellman):
-	def __init__(self, alpha: int, q: int) -> None:
-		self.alpha: int = alpha
-		self.q: int = q
-
-		self.public_item: int = 0
-		self.private_item: int = 0
-		self.unhashed_key: int = 0
-		self.key: bytes = b""
-
-		self.one_public: int = 0
-		self.two_public: int = 0
-		self.someones_private: int = 0
-		self.someone_identity: int = 0	# 1 for one, 2 for two
-
-	def determine_private_item(self, whose_public: int):
-		public: int = 0
-		self.someone_identity = whose_public
-		if self.someone_identity == 1:
-			public = self.one_public
-		else:
-			public = self.two_public
-
-		self.someones_private = -1 * math.log(public % self.q, self.alpha)
-
-		return self.someones_private
-
-	# Override
-	def create_unhashed_key(self):
-		public: int = 0
-		if self.someone_identity == 1:
-			public = self.two_public
-		else:
-			public = self.one_public
-
-		self.unhashed_key = pow(public, self.someones_private, self.q)
-
-		return self.unhashed_key
 
 
 """
@@ -183,6 +148,5 @@ def encrypt_cbc(plaintext: bytes, iv: bytes, key: bytes) -> bytes:
 def decrypt_cbc(ciphertext: bytes, iv: bytes, key: bytes) -> str:
 	cipher = AES.new(key, AES.MODE_CBC, iv)
 	plaintext = cipher.decrypt(ciphertext)
-	plaintext = unpad(plaintext, AES.block_size).decode("latin-1")
 
-	return plaintext
+	return unpad(plaintext, AES.block_size).decode("ascii")
