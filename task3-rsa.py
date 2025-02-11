@@ -1,6 +1,6 @@
 from Crypto.Util.number import getPrime
 # from Crypto.Random.random import randint
-# from math import gcd
+import math
 
 def main():
     primeBits = 1024 # need to take use input, support up to 2048 bits
@@ -53,12 +53,34 @@ def getKeys(primeBits):
     print(f"e = {e}")
 
     # 5. calculate d such that d * e mod phi(n) = 1
-    d = 1 
-    # ... not sure how to calculate...
+    d = modular_inverse(e, phi)
+    print(f"d = {d}")
 
     # 6. private key = {e, n}
     # 7. public key = {d, n}
     return ((e, n), (d, n))
+
+
+def extended_gcd(a, b):
+    """Computes the Greatest Common Divisor (GCD) of a and b,
+    as well as the coefficients (x, y) that satisfy the equation:
+    ax + by = gcd(a, b)
+    """
+    if a == 0:
+        return b, 0, 1
+    else:
+        gcd, x1, y1 = extended_gcd(b % a, a)
+        x = y1 - (b // a) * x1
+        y = x1
+        return gcd, x, y
+
+def modular_inverse(e, phi):
+    """Finds the modular inverse of e modulo phi using the Extended Euclidean Algorithm."""
+    gcd, x, _ = extended_gcd(e, phi)
+    if gcd != 1:
+        raise ValueError("e and phi must be coprime")
+    else:
+        return x % phi  # Ensure d is positive
 
 
 def encrypt(M, e, n):
