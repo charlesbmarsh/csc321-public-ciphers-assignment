@@ -43,19 +43,18 @@ def main():
 
 
     print(f"\n\nMITM attack!!\n")
-    
     # note: have n and e already
     
     # Bob
     sB = getPrime(n.bit_length() - 1)
     print(f"sB = {sB}")
-    print(f"sB < n ?" "yes" if sB < n else "no")
+    print(f"sB < n ? " "yes" if sB < n else "no")
+    if sB >= n: exit()
     c = pow(sB, e, n)
     print(f"c = {c}")
 
     # Mallory
-    factor = 3
-    c_modified = (c * pow(factor, e)) % n
+    c_modified = 1
 
     # Alice
     sA = pow(c_modified, dA, n)
@@ -63,37 +62,21 @@ def main():
     length = math.ceil(sA.bit_length() / 8)
     hashA.update(sA.to_bytes(length, "big"))
     kA = hashA.digest()
-    cbc_cipherA = AES.new(kA, AES.MODE_CBC)
-    newC = cbc_cipherA.encrypt(bytearray(pad(message.encode('latin-1'), AES.block_size)))
+    print(f"kA = {kA}")
+    iv=b"0000000000000000"
+    cbc_cipherA = AES.new(kA, AES.MODE_CBC, iv = iv)
+    newC = cbc_cipherA.encrypt(pad(message.encode('latin-1'), AES.block_size))
 
     # Mallory
-    b = modular_inverse(factor, n)
     hashM = SHA256.new()
-    length = math.ceil(factor.bit_length() / 8)
-    hashM.update(factor.to_bytes(length, "big"))
+    sM = 1
+    length = math.ceil(sM.bit_length() / 8)
+    hashM.update(sM.to_bytes(length, "big"))
     kM = hashM.digest()
-    cbc_cipherM = AES.new(kM, AES.MODE_CBC)
+    print(f"kM = kA? " "yes" if kM == kA else "no")
+    cbc_cipherM = AES.new(kM, AES.MODE_CBC, iv = iv)
     decrypted = unpad(cbc_cipherM.decrypt(newC), AES.block_size).decode('latin-1')
-    print("decrypted:", decrypted)
-
-
-
-    # k = 3
-    # if math.gcd(k, n) != 1:
-    #     print("selected k not coprime!!")
-    #     exit()
-    
-    # ciphertext_modified = (ciphertext * pow(k, e)) % n
-    # print(f"modified ciphertext = {ciphertext_modified}")
-
-    # output_modified = decrypt(ciphertext_modified, d, n)
-    # print(f"modified output = {output_modified}")
-
-    # output = (output_modified * modular_inverse(k, n)) % n
-    # print(f"fixed output = {output}")
-    # plaintext = bytes.fromhex(hex(output)[2:]).decode('latin-1')
-    # print("plaintext:", plaintext)
-    # print("successfully decrypted?", "yes!" if plaintext == message else "no :(")
+    print("Mallory decrypted:", decrypted)
 
 
 def getKeys(primeBits):
@@ -128,8 +111,8 @@ def getKeys(primeBits):
 
 
 def extended_gcd(a, b):
-    """Computes the Greatest Common Divisor (GCD) of a and b and 
-    the coefficients (x, y) that satisfy the equation ax + by = gcd(a, b)
+    """Computes the gcd of a and b and finds
+    the coefficients x and y that satisfy the equation ax + by = gcd(a, b)
     """
     if a == 0:
         return b, 0, 1
@@ -144,7 +127,8 @@ def modular_inverse(e, phi):
     # uses the extended euclidean algorithm
     gcd, x, y = extended_gcd(e, phi)
     if gcd != 1:
-        raise ValueError("e and phi must be coprime")
+        print("e and phi are not coprime!")
+        exit()
     else:
         return x % phi  # Ensure d is positive
 
