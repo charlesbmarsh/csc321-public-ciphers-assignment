@@ -3,7 +3,7 @@ from Crypto.Util.number import getPrime
 import math
 
 def main():
-    primeBits = 1024 # need to take use input, support up to 2048 bits
+    primeBits = 1024 # need to take user input, support up to 2048 bits
 
     keys = getKeys(primeBits)
     e = keys[0][0]
@@ -21,7 +21,10 @@ def main():
     ciphertext = encrypt(input, e, n)
     print("ciphertext:", ciphertext)
 
-    plaintext = decrypt(ciphertext, d, n)
+    ciphertext_modified = (ciphertext * pow(ciphertext - 1, e, n)) % n
+
+    plaintext_modified = decrypt(ciphertext_modified, d, n)
+    plaintext = (plaintext_modified * modular_inverse(ciphertext - 1, n)) % n
     # print("plaintext:", plaintext)
     print("successfully decrypted?", plaintext == input)
 
@@ -45,10 +48,6 @@ def getKeys(primeBits):
 
     # 4. select integer e such that gcd(phi(n), e) = 1 and 1 < e < phi(n)
     # in other words, e is relatively prime to phi(n) and e < phi(n)
-    # while True:
-    #     e = randint(1, n - 1)
-    #     if gcd(phi, e) == 1:
-    #         break
     e = 65537 # set constant per lab procedure
     print(f"e = {e}")
 
@@ -76,7 +75,7 @@ def extended_gcd(a, b):
 
 def modular_inverse(e, phi):
     """Finds the modular inverse of e modulo phi using the Extended Euclidean Algorithm."""
-    gcd, x, _ = extended_gcd(e, phi)
+    gcd, x, y = extended_gcd(e, phi)
     if gcd != 1:
         raise ValueError("e and phi must be coprime")
     else:
