@@ -10,23 +10,44 @@ def main():
     n = keys[0][1]
     d = keys[1][0]
 
-    message = "Helo, world!"
+    message = "Hello, world!"
+    print("message:", message)
     input = int(message.encode('latin-1').hex(), 16)
-    print("message:", input, "(type", type(input), ")")
-    print("message < n?", input < n)
+    print(f"input = {input}")
+    print("input < n?", input < n)
     if(input >= n):
-        print("message too long!")
+        print("\nmessage too long!!")
         return
     
     ciphertext = encrypt(input, e, n)
     print("ciphertext:", ciphertext)
 
-    ciphertext_modified = (ciphertext * pow(ciphertext - 1, e, n)) % n
+    output = decrypt(ciphertext, d, n)
+    print(f"output: {output}")
+    plaintext = bytes.fromhex(hex(output)[2:]).decode('latin-1')
+    print(f"plaintext: {plaintext}")
+    print("plaintext:", plaintext)
+    print("successfully decrypted?", "yes" if plaintext == message else "no")
 
-    plaintext_modified = decrypt(ciphertext_modified, d, n)
-    plaintext = (plaintext_modified * modular_inverse(ciphertext - 1, n)) % n
-    # print("plaintext:", plaintext)
-    print("successfully decrypted?", plaintext == input)
+
+
+    print(f"\n\nMITM attack!!\n")
+    
+    k = 3
+    if math.gcd(k, n) != 1:
+        print("selected k not coprime!!")
+        exit()
+    
+    ciphertext_modified = pow(ciphertext * pow(k, e), 1, n)
+    print(f"modified ciphertext = {ciphertext_modified}")
+
+    output_modified = decrypt(ciphertext_modified, d, n)
+    print(f"modified output: {output_modified}")
+    output = pow(output_modified * modular_inverse(k, n), 1, n)
+    print(f"fixed output: {output}")
+    plaintext = bytes.fromhex(hex(output)[2:]).decode('latin-1')
+    print("plaintext:", plaintext)
+    print("successfully decrypted?", "yes" if plaintext == message else "no")
 
 
 def getKeys(primeBits):
@@ -73,6 +94,7 @@ def extended_gcd(a, b):
         y = x1
         return gcd, x, y
 
+
 def modular_inverse(e, phi):
     """Finds the modular inverse of e modulo phi using the Extended Euclidean Algorithm."""
     gcd, x, y = extended_gcd(e, phi)
@@ -84,13 +106,13 @@ def modular_inverse(e, phi):
 
 def encrypt(M, e, n):
     c = pow(M, e, n)
-    print(f"c: {c}")
+    # print(f"c: {c}")
     return c
 
 
 def decrypt(C, d, n):
     M = pow(C, d, n)
-    print(f"M: {M}")
+    # print(f"M: {M}")
     return M
 
 
