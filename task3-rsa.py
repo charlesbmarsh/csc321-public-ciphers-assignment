@@ -10,24 +10,23 @@ def main():
     n = keys[0][1]
     d = keys[1][0]
 
-    message = "Hello, world!"
+    message = "Hi Bob!"
     print("message:", message)
     input = int(message.encode('latin-1').hex(), 16)
     print(f"input = {input}")
     print("input < n?", input < n)
     if(input >= n):
         print("\nmessage too long!!")
-        return
+        exit()
     
     ciphertext = encrypt(input, e, n)
     print("ciphertext:", ciphertext)
 
     output = decrypt(ciphertext, d, n)
-    print(f"output: {output}")
+    print(f"output = {output}")
     plaintext = bytes.fromhex(hex(output)[2:]).decode('latin-1')
-    print(f"plaintext: {plaintext}")
     print("plaintext:", plaintext)
-    print("successfully decrypted?", "yes" if plaintext == message else "no")
+    print("successfully decrypted?", "yes!" if plaintext == message else "no :(")
 
 
 
@@ -38,16 +37,16 @@ def main():
         print("selected k not coprime!!")
         exit()
     
-    ciphertext_modified = pow(ciphertext * pow(k, e), 1, n)
+    ciphertext_modified = (ciphertext * pow(k, e)) % n
     print(f"modified ciphertext = {ciphertext_modified}")
 
     output_modified = decrypt(ciphertext_modified, d, n)
-    print(f"modified output: {output_modified}")
-    output = pow(output_modified * modular_inverse(k, n), 1, n)
-    print(f"fixed output: {output}")
+    print(f"modified output = {output_modified}")
+    output = (output_modified * modular_inverse(k, n)) % n
+    print(f"fixed output = {output}")
     plaintext = bytes.fromhex(hex(output)[2:]).decode('latin-1')
     print("plaintext:", plaintext)
-    print("successfully decrypted?", "yes" if plaintext == message else "no")
+    print("successfully decrypted?", "yes!" if plaintext == message else "no :(")
 
 
 def getKeys(primeBits):
