@@ -1,9 +1,18 @@
+from sys import argv
 from Crypto.Util.number import getPrime
-# from Crypto.Random.random import randint
 import math
 
 def main():
-    primeBits = 1024 # need to take user input, support up to 2048 bits
+    if len(argv) < 2:
+        print("task3: please provide a prime length between 3 and 2048.")
+        print("task3: usage: task3-rsa.py <prime length> ")
+        exit()
+	
+	# take user input to determine length of primes
+    primeBits = int(argv[1], 10) # base 10 integer input
+    if primeBits > 2048 or primeBits < 3:
+        print("please provide a prime length between 2 and 2048")
+        exit()
 
     keys = getKeys(primeBits)
     e = keys[0][0]
@@ -81,9 +90,8 @@ def getKeys(primeBits):
 
 
 def extended_gcd(a, b):
-    """Computes the Greatest Common Divisor (GCD) of a and b,
-    as well as the coefficients (x, y) that satisfy the equation:
-    ax + by = gcd(a, b)
+    """Computes the Greatest Common Divisor (GCD) of a and b and 
+    the coefficients (x, y) that satisfy the equation ax + by = gcd(a, b)
     """
     if a == 0:
         return b, 0, 1
@@ -95,7 +103,7 @@ def extended_gcd(a, b):
 
 
 def modular_inverse(e, phi):
-    """Finds the modular inverse of e modulo phi using the Extended Euclidean Algorithm."""
+    # uses the extended euclidean algorithm
     gcd, x, y = extended_gcd(e, phi)
     if gcd != 1:
         raise ValueError("e and phi must be coprime")
@@ -105,13 +113,11 @@ def modular_inverse(e, phi):
 
 def encrypt(M, e, n):
     c = pow(M, e, n)
-    # print(f"c: {c}")
     return c
 
 
 def decrypt(C, d, n):
     M = pow(C, d, n)
-    # print(f"M: {M}")
     return M
 
 
